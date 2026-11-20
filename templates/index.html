@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-Scraping RAG Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <section>
+        <div class="bg-white">
+            <div class="relative isolate overflow-hidden bg-gradient-to-b from-gray-200/50">
+                <div class="mx-auto max-w-7xl pb-24 pt-10 sm:pb-32 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:px-8 lg:py-40">
+                    <div class="px-6 lg:px-0 lg:pt-4">
+                        <div class="mx-auto max-w-2xl">
+                            <div class="max-w-lg">
+                                <div class="mt-24 sm:mt-32 lg:mt-16">
+                                    <span class="inline-flex items-center space-x-2 text-sm leading-6 text-gray-600 font-mono tracking-wide">
+                                        <span class="text-transparent bg-clip-text bg-gradient-to-t from-rose-400 via-fuchsia-500 to-indigo-500 font-bold">
+                                            Web-Scraping RAG Chatbot
+                                        </span>
+                                    </span>
+                                </div>
+                                <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+                                    Converse with Ease: Your Scraped Web Content Companion
+                                </h1>
+                                <p class="mt-6 text-lg leading-8 text-gray-600">
+                                    Unlock the power of conversational AI to navigate through web-scraped documents. Simplify research, streamline information retrieval, and elevate productivity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section>
+        <div class="space-y-5 divide-y divide-gray-900/10 flex justify-center bg-gradient-to-t from-gray-900/5 py-12">
+            <div class="grid grid-cols-1 gap-x-8 gap-y-8 pt-4 md:grid-cols-3 max-w-5xl px-4">
+                <div class="px-4 sm:px-0">
+                    <h2 class="text-2xl font-bold leading-7 text-transparent bg-clip-text bg-gradient-to-tl from-rose-400 via-fuchsia-500 to-indigo-500">
+                        Ask a Question
+                    </h2>
+                    <p class="mt-1 text-md leading-6 text-gray-600">Enter a query based on scraped web content.</p>
+                </div>
+
+                <form action="/chat" method="post" class="sm:rounded-xl md:col-span-2 drop-shadow-md">
+                    <div class="px-4 py-6 sm:p-8 bg-white shadow-sm rounded-lg">
+                        <div class="grid max-w-2xl">
+                            <div class="sm:col-span-4">
+                                <label for="question" class="block text-sm font-medium leading-8 text-gray-900">Question</label>
+                                <div class="mt-2">
+                                    <input type="text" id="question" name="question" required
+                                        class="pl-3 block w-full rounded-md border py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex bg-white shadow-sm items-start justify-start gap-x-6 border-t border-gray-900/10 py-4 sm:px-8 rounded-b-lg">
+                        <input type="submit" value="Submit"
+                            class="rounded-md bg-gradient-to-tr from-rose-400 via-fuchsia-500 to-indigo-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 cursor-pointer">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

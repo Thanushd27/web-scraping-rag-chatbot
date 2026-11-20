@@ -1,0 +1,47 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Node / JS dependencies
+node_modules/
+
+# Logs and diff dumps
+*.log
+logs/
+app_diff_summary.txt
+
+# Vector databases and index directories (generated at runtime)
+faiss/
+faiss_backup/
+faiss_index/
+chroma_db/
+*.sqlite
+*.sqlite3
+
+# Documents and leftovers from previous projects
+docs/
+static/government_schemes/
+Final Report.pdf
+templates/pdf.html
+templates/*_scheme_sahayak.html
+templates/*_backup_original.html
+
+# Operating system / IDE metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-Scraping RAG Chatbot — Interactive Q&A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: #0f0521;
+        }
+
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.35);
+            border-radius: 9999px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(249, 115, 22, 0.7);
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        .glass-header {
+            background: rgba(18, 7, 39, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .glass-footer {
+            background: rgba(18, 7, 39, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f0521] text-slate-100 h-full flex flex-col antialiased selection:bg-orange-500 selection:text-white">
+
+    <!-- Top Fixed Header -->
+    <header class="sticky top-0 z-20 glass-header shadow-sm shrink-0">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center gap-2.5 group transition-opacity hover:opacity-95" title="Home">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 p-0.5 shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform duration-200">
+                        <div class="w-full h-full bg-[#180a33] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-white text-base sm:text-lg tracking-tight">Web-Scraping RAG Chatbot</h1>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Online
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Grounded in Scraped Web Documents</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl hover:bg-purple-900/40 border border-purple-800/40 transition">
+                    &larr; Back to Home
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Viewport -->
+    <main class="flex-1 flex flex-col overflow-hidden max-w-4xl w-full mx-auto">
+        
+        <!-- Continuous Conversation Area -->
+        <div id="messages-container" class="flex-1 overflow-y-auto px-4 py-6 space-y-6 chat-scroll">
+            
+            {% if chat_history and chat_history|length > 0 %}
+                
+                <!-- Paired Chat Stream in Chronological Order -->
+                {% for pair in chat_history|batch(2, '') %}
+                    
+                    <!-- USER MESSAGE -->
+                    <div class="flex justify-end items-end gap-2.5 sm:gap-3 pl-8 sm:pl-16">
+                        <div class="flex flex-col items-end max-w-[85%] sm:max-w-[78%]">
+                            <span class="text-[11px] font-medium text-purple-300/60 mb-1 mr-1">You</span>
+                            <div class="bg-[#FFF9EE] text-slate-900 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl rounded-br-sm shadow-md border border-orange-200/60 leading-relaxed text-sm sm:text-[15px] break-words">
+                                {{ pair[0] }}
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-sm" title="You">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- AI RESPONSE -->
+                    {% if pair[1] %}
+                    <div class="flex justify-start items-start gap-2.5 sm:gap-3 pr-6 sm:pr-14">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-md mt-0.5" title="Assistant">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div class="flex flex-col items-start max-w-[88%] sm:max-w-[82%]">
+                            <div class="flex items-center gap-2 mb-1 ml-1">
+                                <span class="text-[11px] font-bold text-orange-400">RAG Assistant</span>
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-purple-900/60 text-purple-300 border border-purple-700/40">Scraped Web Docs</span>
+                            </div>
+                            <div class="bg-white text-slate-800 px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl rounded-tl-sm shadow-md border border-slate-200/90 leading-relaxed text-sm sm:text-[15px] break-words whitespace-pre-wrap">
+                                {% if pair[1] is mapping %}
+                                    <div class="text-slate-800">{{ pair[1].answer }}</div>
+
+                                    <!-- Estimated Confidence Indicator -->
+                                    <div class="mt-3.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                                        <div class="relative group/tooltip inline-flex items-center gap-1.5 cursor-help">
+                                            <span class="text-xs font-semibold text-slate-500">Estimated confidence:</span>
+                                            {% if pair[1].confidence and pair[1].confidence.percent is not none %}
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold 
+                                                    {% if pair[1].confidence.percent >= 70 %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                                    {% elif pair[1].confidence.percent >= 50 %}bg-amber-50 text-amber-700 border border-amber-200
+                                                    {% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %}">
+                                                    <span class="w-1.5 h-1.5 rounded-full 
+                                                        {% if pair[1].confidence.percent >= 70 %}bg-emerald-500
+                                                        {% elif pair[1].confidence.percent >= 50 %}bg-amber-500
+                                                        {% else %}bg-rose-500{% endif %}"></span>
+                                                    {{ pair[1].confidence.percent }}% ({{ pair[1].confidence.level }})
+                                                </span>
+                                            {% elif pair[1].confidence %}
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                                    {{ pair[1].confidence.level }}
+                                                </span>
+                                            {% endif %}
+
+                                            <svg class="w-3.5 h-3.5 text-slate-400 group-hover/tooltip:text-orange-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+
+                                            <div class="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block w-72 sm:w-80 p-3 bg-slate-900/95 text-slate-100 text-xs rounded-xl shadow-2xl z-30 leading-relaxed border border-purple-500/30 backdrop-blur-sm pointer-events-none">
+                                                <p class="font-semibold text-orange-400 mb-1 flex items-center gap-1">
+                                                    <span>How confidence is calculated</span>
+                                                </p>
+                                                <p class="text-slate-200 text-[11px] leading-relaxed">
+                                                    {{ pair[1].confidence.explanation if pair[1].confidence else 'Calculated from semantic vector similarity between question and retrieved chunks.' }}
+                                                </p>
+                                                <p class="text-[10px] text-purple-300/70 mt-1.5 italic">
+                                                    Note: Not a calibrated statistical probability.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Collapsible Sources Section -->
+                                    {% if pair[1].sources and pair[1].sources|length > 0 %}
+                                    <details class="mt-2.5 pt-2 border-t border-slate-100 group/details">
+                                        <summary class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-orange-600 hover:text-orange-700 select-none py-0.5">
+                                            <svg class="w-4 h-4 text-orange-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <span>View sources ({{ pair[1].sources|length }})</span>
+                                            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-open/details:rotate-180 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </summary>
+                                        
+                                        <div class="mt-2 space-y-1.5">
+                                            {% for src in pair[1].sources %}
+                                            <div class="flex items-center gap-2 text-xs bg-orange-50/70 hover:bg-orange-50/90 px-3 py-2 rounded-lg border border-orange-200/60 transition-colors">
+                                                <svg class="w-3.5 h-3.5 text-orange-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                </svg>
+                                                <span class="font-semibold text-slate-800 break-all">{{ src.filename }}</span>
+                                                <span class="text-slate-300">•</span>
+                                                <span class="text-orange-700 font-medium shrink-0">{{ src.pages_label }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                    {% endif %}
+
+                                {% else %}
+                                    <div class="text-slate-800">{{ pair[1] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                {% endfor %}
+
+            {% else %}
+                
+                <!-- Welcome Screen -->
+                <div class="h-full min-h-[360px] flex flex-col items-center justify-center text-center px-4 py-8">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 p-0.5 shadow-xl shadow-orange-500/20 mb-4">
+                        <div class="w-full h-full bg-[#180a33] rounded-[14px] flex items-center justify-center">
+                            <svg class="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white mb-2">Web-Scraping RAG Chatbot</h2>
+                    <p class="text-amber-400 font-medium text-xs sm:text-sm uppercase tracking-wider mb-2">Interactive Web Knowledge Retrieval</p>
+                    <p class="text-slate-300 text-sm sm:text-base max-w-md mx-auto mb-6 leading-relaxed">
+                        Ask any question grounded directly in the scraped website documents.
+                    </p>
+
+                    <!-- Suggested Questions for Scraped Web Content -->
+                    <div class="w-full max-w-lg space-y-2">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Suggested Questions</p>
+                        <button type="button" onclick="setQuestion('What are the key features and performance specifications of Tesla Model S?')"
+                                class="w-full text-left p-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/40 text-slate-200 text-xs sm:text-sm transition flex items-center justify-between group">
+                            <span>"What are the key features and performance of Tesla Model S?"</span>
+                            <span class="text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">&rarr;</span>
+                        </button>
+                        <button type="button" onclick="setQuestion('How does Tesla Supercharging and charging infrastructure work?')"
+                                class="w-full text-left p-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/40 text-slate-200 text-xs sm:text-sm transition flex items-center justify-between group">
+                            <span>"How does Tesla Supercharging and charging work?"</span>
+                            <span class="text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">&rarr;</span>
+                        </button>
+                        <button type="button" onclick="setQuestion('What solar and clean energy products does Tesla offer?')"
+                                class="w-full text-left p-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/40 text-slate-200 text-xs sm:text-sm transition flex items-center justify-between group">
+                            <span>"What solar and clean energy products does Tesla offer?"</span>
+                            <span class="text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">&rarr;</span>
+                        </button>
+                    </div>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Fixed Message Composer (Bottom) -->
+        <footer class="sticky bottom-0 glass-footer pt-3 pb-4 px-4 shrink-0">
+            <form id="chat-form" action="/chat" method="post" class="relative flex items-center gap-2">
+                <div class="relative flex-1">
+                    <textarea
+                        id="question"
+                        name="question"
+                        rows="1"
+                        placeholder="Ask anything about the scraped website content..."
+                        required
+                        class="w-full pl-4 pr-12 py-3.5 bg-[#FFF9EE] text-slate-900 placeholder-slate-500 rounded-2xl text-sm sm:text-base border border-amber-200/80 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent shadow-inner transition leading-normal block max-h-32"
+                    ></textarea>
+                </div>
+
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    title="Send message"
+                    class="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-orange-500/25 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group">
+                    <svg class="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </form>
+            
+            <p class="text-[11px] text-slate-400 text-center mt-2 font-medium">
+                Answers are grounded directly in the scraped website documents. Press Enter to send, Shift+Enter for new line.
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        const textarea = document.getElementById('question');
+        const form = document.getElementById('chat-form');
+        const container = document.getElementById('messages-container');
+
+        function scrollToBottom() {
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        window.addEventListener('DOMContentLoaded', scrollToBottom);
+
+        function setQuestion(text) {
+            if (textarea) {
+                textarea.value = text;
+                textarea.focus();
+                adjustHeight();
+            }
+        }
+
+        function adjustHeight() {
+            if (textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            }
+        }
+
+        if (textarea) {
+            textarea.addEventListener('input', adjustHeight);
+            textarea.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (textarea.value.trim().length > 0) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>
